@@ -1,5 +1,16 @@
-bin
-include
+# Created by venv; see https://docs.python.org/3/library/venv.html
 lib
 lib64
+bin	
+include
+
+pip
+pip3
+pip3.14
+python*
+*thon
+activate
+*.csh
+*.fish
+*.ps1
 *.cfg

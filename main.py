@@ -1,6 +1,5 @@
 import sys
 import pygame
-
 from enum import Enum, auto
 
 pygame.init()
@@ -47,10 +46,14 @@ class Fonts:
 
 class Sounds:
     def __init__(self) -> None:
-        pygame.mixer.music.load("sounds/mainmenu.ogg")
-        self.slam = pygame.mixer.Sound("sounds/slam.mp3")
-        self.dash = pygame.mixer.Sound("sounds/dash.mp3")
-        self.jump = pygame.mixer.Sound("sounds/jump.mp3")
+        try:
+            pygame.mixer.music.load("sounds/mainmenu.ogg")
+            self.slam = pygame.mixer.Sound("sounds/slam.mp3")
+            self.dash = pygame.mixer.Sound("sounds/dash.mp3")
+            self.jump = pygame.mixer.Sound("sounds/jump.mp3")
+        except:
+            self.sound_working = False
+            return
         
         return
 
@@ -62,7 +65,7 @@ class KeyEventHandler:
         if event.key == pygame.K_ESCAPE:
             game.menu = not game.menu
 
-        if game.inlevel:
+        if game.inlevel and game.sounds.sound_working:
             if event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL:
                 sounds.slam.play()
             if event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
@@ -170,8 +173,8 @@ def main() -> int:
     pygame.display.flip()
     pygame.time.delay(1000)
 
-
-    pygame.mixer.music.play(-1)
+    if game.sounds.sound_working:
+        pygame.mixer.music.play(-1)
     while game.running:
         game.state = GameStates.mainMenu
         game.main()
