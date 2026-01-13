@@ -14,3 +14,4 @@ activate
 *.fish
 *.ps1
 *.cfg
+*.gitignore
