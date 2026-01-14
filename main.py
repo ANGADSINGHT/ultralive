@@ -12,13 +12,15 @@ level = logging.DEBUG
 pygame.init()
 sounds = True
 
+TICK_SPEED = 75
+
 logging.basicConfig(format="%(levelname)s:%(name)s >> %(message)s",
                     level=level)
 
 
 class PipelineBackground:
     def __init__(self, game) -> None:
-        self.speed = 100
+        self.speed = TICK_SPEED
         self.pipeline = game.assets.pipeline
         self.pipeline2 = game.assets.pipeline2
 
@@ -31,12 +33,14 @@ class PipelineBackground:
 
         if self.pipeline_y >= 1080:
             self.pipeline_y = -1080
+            logging.debug(f"FPS: {game.clock.get_fps():.2f}")
         if self.pipeline2_y >= 1080:
             self.pipeline2_y = -1080
 
         game.screen.blit(self.pipeline, (0, self.pipeline_y))
         game.screen.blit(self.pipeline2, (0, self.pipeline2_y))
-        return 0
+
+        return 1
 
 
 class GameStates(Enum):
@@ -44,16 +48,35 @@ class GameStates(Enum):
     playMenu = auto()
 
 
+class Menu:
+    def __init__(self):
+        self.last_stage = None
+
+
 class Assets:
     def __init__(self) -> None:
-        self.pipeline = pygame.image.load("assets/backgrounds/pipeline.png")
-        self.pipeline2 = pygame.image.load("assets/backgrounds/pipeline2.png")
-        self.play = pygame.image.load("assets/buttons/play.png")
-        self.quit = pygame.image.load("assets/buttons/quit.png")
-        self.ultrapy = pygame.image.load("assets/text/ultrapy.png")
+        self.pipeline = pygame.image.load(
+            "assets/backgrounds/pipeline.png").convert_alpha()
+        self.pipeline2 = pygame.image.load(
+            "assets/backgrounds/pipeline2.png").convert_alpha()
+        self.play = pygame.image.load(
+            "assets/buttons/play.png").convert_alpha()
+        self.quit = pygame.image.load(
+            "assets/buttons/quit.png").convert_alpha()
+        self.ultrapy = pygame.image.load(
+            "assets/text/ultrapy.png").convert_alpha()
+        self.blackbox = pygame.image.load(
+            "assets/backgrounds/blackbox.png").convert_alpha()
+        self.blackbox_small = pygame.image.load(
+            "assets/backgrounds/blackbox_small.png").convert_alpha()
 
-        self.prelude = pygame.image.load("assets/buttons/prelude.png")
-        self.act1 = pygame.image.load("assets/buttons/act1.png")
+        self.prelude = pygame.image.load(
+            "assets/buttons/prelude.png").convert_alpha()
+        self.act1 = pygame.image.load(
+            "assets/buttons/act1.png").convert_alpha()
+
+        self.v1 = pygame.image.load(
+            "assets/characters/v1.png").convert_alpha()
 
 
 class Fonts:
@@ -62,6 +85,8 @@ class Fonts:
                                             bold=True)
         self.fontTitle = pygame.font.SysFont('fonts/ultrafont.ttf', 100)
         self.font20 = pygame.font.SysFont('fonts/ultrafont.ttf', 20)
+        self.font30 = pygame.font.SysFont('fonts/ultrafont.ttf', 30)
+        self.font45 = pygame.font.SysFont('fonts/ultrafont.ttf', 45)
 
 
 class Sounds:
@@ -146,6 +171,18 @@ class mainMenu:
         ultrapy_rect.bottom = play_button_rect.top - 20
         menu_surf.blit(ultrapy_surf, ultrapy_rect)
 
+        blackbox_surf = game.assets.blackbox_small
+        blackbox_rect = blackbox_surf.get_rect()
+        blackbox_rect.centerx += 5
+        menu_surf.blit(blackbox_surf, blackbox_rect)
+
+        text_surface = game.fonts.font45.render(
+            f'FPS: {game.clock.get_fps():.2f}', False, (255, 255, 255))
+        text_surface2 = game.fonts.font30.render(
+            'Version 0.01', False, (255, 255, 255))
+        menu_surf.blit(text_surface2, (40, 45))
+        menu_surf.blit(text_surface, (40, 67))
+
         return menu_surf, play_button_rect, quit_button_rect
 
     def draw(self, game):
@@ -168,7 +205,7 @@ class mainMenu:
                 quit()
 
 
-class playMenu:
+class playMenu(Menu):
     def __init__(self):
         self.submenu = 0
         self.id = "Play Menu"
@@ -246,7 +283,7 @@ class Game:
         self.state.update(self)
 
         pygame.display.flip()
-        self.clock.tick(75)
+        self.clock.tick(TICK_SPEED)
 
         return 0
 
@@ -261,8 +298,6 @@ def main() -> int:
     game.events = EventHandler()
     game.sounds = Sounds()
     game.fonts = Fonts()
-    game.assets = Assets()
-    game.pipelines = PipelineBackground(game)
 
     loading_surf = game.fonts.fontTitle.render(
         "LOADING", True, (255, 255, 255))
@@ -270,7 +305,9 @@ def main() -> int:
 
     game.screen.blit(loading_surf, loading_rect)
     pygame.display.flip()
-    pygame.time.delay(1000)
+
+    game.assets = Assets()
+    game.pipelines = PipelineBackground(game)
 
     if game.sounds.sound_working:
         pygame.mixer.music.play(-1)
